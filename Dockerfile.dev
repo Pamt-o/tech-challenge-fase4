@@ -1,0 +1,19 @@
+# Usa uma imagem oficial do Maven com JDK 17 (Amazon Corretto)
+FROM maven:3.9-amazoncorretto-17-debian-bookworm
+
+# Define o diretório de trabalho dentro do container
+WORKDIR /workspace
+
+# Instala dependências necessárias (curl, unzip) para o JBang
+RUN apt-get update && apt-get install -y curl unzip && rm -rf /var/lib/apt/lists/*
+
+# Instala o JBang e o Quarkus CLI
+# O comando instala o JBang e depois usa ele para instalar o Quarkus CLI
+RUN curl -Ls https://sh.jbang.dev | bash -s - trust add https://repo1.maven.org/maven2/io/quarkus/quarkus-cli/ && \
+    curl -Ls https://sh.jbang.dev | bash -s - app install --fresh --force quarkus@quarkusio
+
+# Adiciona o JBang e o Quarkus ao PATH para que possam ser executados de qualquer lugar
+ENV PATH="/root/.jbang/bin:${PATH}"
+
+# Comando padrão: mantém o container rodando para que você possa executar comandos via 'docker compose exec'
+CMD ["sleep", "infinity"]

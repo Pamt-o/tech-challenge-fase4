@@ -1,0 +1,49 @@
+
+services:
+  # Serviço do ambiente de desenvolvimento Quarkus
+  quarkus-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: tech-challenge-quarkus-dev
+    volumes:
+      # Monta o código-fonte do seu computador para dentro do container
+      - .:/workspace
+      # Monta o cache do Maven para evitar baixar dependências repetidamente
+      - ~/.m2:/root/.m2
+    working_dir: /workspace
+    ports:
+      # Porta para acessar a aplicação Quarkus em execução
+      - "8080:8080"
+      # Porta para debug remoto (opcional, mas útil)
+      - "5005:5005"
+    # O comando 'sleep infinity' vem do Dockerfile, mas podemos reforçar aqui se necessário
+    # command: sleep infinity
+    depends_on:
+      - postgres
+    networks:
+      - tech-challenge-network
+
+  # Serviço do Banco de Dados PostgreSQL
+  postgres:
+    image: postgres:16-alpine
+    container_name: tech-challenge-postgres
+    environment:
+      POSTGRES_USER: quarkus
+      POSTGRES_PASSWORD: quarkus
+      POSTGRES_DB: feedback_db
+    ports:
+      # Expõe a porta do banco para o seu computador (opcional, mas útil para ferramentas como DBeaver)
+      - "5432:5432"
+    volumes:
+      # Persiste os dados do banco mesmo que o container seja removido
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - tech-challenge-network
+
+volumes:
+  postgres_data:
+
+networks:
+  tech-challenge-network:
+    driver: bridge
