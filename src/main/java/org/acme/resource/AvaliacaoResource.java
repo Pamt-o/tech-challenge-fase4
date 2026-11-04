@@ -6,7 +6,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.acme.Avaliacao;
-import service.EmailService;
+import org.acme.service.EmailService;
 
 import java.time.LocalDate;
 import java.util.HashMap;

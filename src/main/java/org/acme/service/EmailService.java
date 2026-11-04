@@ -1,4 +1,4 @@
-package service;
+package org.acme.service;
 
 import com.azure.communication.email.EmailClient;
 import com.azure.communication.email.EmailClientBuilder;
