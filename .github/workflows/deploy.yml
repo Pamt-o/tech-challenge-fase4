@@ -1,11 +1,38 @@
-    - name: 'Deploy to Azure Functions'
-      uses: azure/login@v2
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+name: Deploy Quarkus to Azure Functions
 
-    - name: 'Deploy via Azure CLI'
+on:
+  push:
+    branches: [ "main" ]
+
+env:
+  AZURE_FUNCTIONAPP_NAME: 'func-tech-challenge-consumption'
+  JAVA_VERSION: '17'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ env.JAVA_VERSION }}
+        distribution: 'temurin'
+        cache: maven
+
+    - name: Build with Maven
+      run: mvn clean package -DskipTests
+
+    - name: Prepare deployment package
       run: |
         cd target/azure-functions/${{ env.AZURE_FUNCTIONAPP_NAME }}
         zip -r ../../../deploy.zip .
         cd ../../..
-        az functionapp deployment source config-zip -g rg-tech-challenge-feedbacks -n ${{ env.AZURE_FUNCTIONAPP_NAME }} --src deploy.zip
+
+    - name: Deploy to Azure Functions
+      uses: Azure/functions-action@v1
+      with:
+        app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
+        package: '${{ github.workspace }}/deploy.zip'
+        publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
