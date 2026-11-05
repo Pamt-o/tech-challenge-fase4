@@ -24,9 +24,15 @@ jobs:
     - name: Build with Maven
       run: mvn clean package -DskipTests
 
+    - name: Prepare deployment package
+      run: |
+        cd target/azure-functions/${{ env.AZURE_FUNCTIONAPP_NAME }}
+        zip -r ../../../deploy.zip .
+        cd ../../..
+
     - name: Deploy to Azure Functions
       uses: Azure/functions-action@v1
       with:
         app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
-        package: '${{ github.workspace }}/target/azure-functions'
+        package: '${{ github.workspace }}/deploy.zip'
         publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
