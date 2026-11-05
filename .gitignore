@@ -1,4 +1,4 @@
-#Maven
+# Maven
 target/
 pom.xml.tag
 pom.xml.releaseBackup
@@ -12,8 +12,8 @@ release.properties
 .settings/
 bin/
 
-# IntelliJ
-.idea
+# IntelliJ (raiz e subpastas)
+.idea/
 *.ipr
 *.iml
 *.iws
@@ -38,8 +38,10 @@ nb-configuration.xml
 
 # Local environment
 .env
+local.settings.json
 
 # Plugin directory
-/.quarkus/cli/plugins/
+/avaliacao-function/.quarkus/cli/plugins/
+
 # TLS Certificates
 .certs/

@@ -3,12 +3,12 @@ services:
   # Serviço do ambiente de desenvolvimento Quarkus
   quarkus-dev:
     build:
-      context: .
-      dockerfile: Dockerfile.dev
+      context: ./avaliacao-function
+      dockerfile: ../Dockerfile.dev
     container_name: tech-challenge-quarkus-dev
     volumes:
       # Monta o código-fonte do seu computador para dentro do container
-      - .:/workspace
+      - ./avaliacao-function:/workspace
       # Monta o cache do Maven para evitar baixar dependências repetidamente
       - ~/.m2:/root/.m2
     working_dir: /workspace

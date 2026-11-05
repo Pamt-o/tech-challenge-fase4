@@ -5,7 +5,7 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.acme.Avaliacao;
+import org.acme.model.Avaliacao;
 import org.acme.service.EmailService;
 
 import java.time.LocalDate;

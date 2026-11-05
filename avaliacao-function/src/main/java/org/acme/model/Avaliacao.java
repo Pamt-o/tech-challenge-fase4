@@ -1,4 +1,4 @@
-package org.acme;
+package org.acme.model;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.*;
