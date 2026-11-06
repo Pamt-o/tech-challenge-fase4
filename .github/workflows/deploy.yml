@@ -3,6 +3,8 @@ name: Deploy Quarkus to Azure Functions
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'avaliacao-function/**'
 
 env:
   AZURE_FUNCTIONAPP_NAME: 'func-tech-challenge-consumption'

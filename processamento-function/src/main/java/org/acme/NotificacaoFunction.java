@@ -50,4 +50,5 @@ public class NotificacaoFunction {
             throw new RuntimeException(e); // Faz o Service Bus reenfileirar a mensagem em caso de falha
         }
     }
+
 }
