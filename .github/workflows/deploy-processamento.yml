@@ -4,7 +4,7 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - 'processamento-function/**' # Só roda quando o projeto de processamento muda
+      - 'processamento-function/**'
 
 env:
   AZURE_FUNCTIONAPP_NAME: 'func-tech-challenge-processamento'
@@ -29,9 +29,14 @@ jobs:
           cd ${{ env.POM_XML_DIRECTORY }}
           mvn clean package -DskipTests
 
+      - name: Create deployment package
+        run: |
+          cd ${{ env.POM_XML_DIRECTORY }}/target/azure-functions/func-tech-challenge-processamento
+          zip -r ../../../../deploy-processamento.zip .
+
       - name: Deploy to Azure Functions
         uses: Azure/functions-action@v1
         with:
           app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
-          package: '${{ github.workspace }}/processamento-function/target/azure-functions/func-tech-challenge-processamento'
+          package: '${{ github.workspace }}/deploy-processamento.zip'
           publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE_PROCESSAMENTO }}
