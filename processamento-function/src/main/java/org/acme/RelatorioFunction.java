@@ -30,7 +30,7 @@ public class RelatorioFunction {
 
         try (Connection conn = DriverManager.getConnection(dbUrl, dbUser, dbPass)) {
             // 1. Média das notas
-            String sqlMedia = "SELECT AVG(nota) FROM avaliacao WHERE data_envio >= NOW() - INTERVAL '7 days'";
+            String sqlMedia = "SELECT AVG(nota) FROM avaliacao WHERE dataenvio >= NOW() - INTERVAL '7 days'";
             try (Statement stmt = conn.createStatement();
                  ResultSet rs = stmt.executeQuery(sqlMedia)) {
                 if (rs.next()) {
@@ -42,7 +42,7 @@ public class RelatorioFunction {
 
             // 2. Contagem por urgência
             relatorio.append("\nContagem por urgência:\n");
-            String sqlUrgencia = "SELECT urgencia, COUNT(*) FROM avaliacao WHERE data_envio >= NOW() - INTERVAL '7 days' GROUP BY urgencia";
+            String sqlUrgencia = "SELECT urgencia, COUNT(*) FROM avaliacao WHERE dataenvio >= NOW() - INTERVAL '7 days' GROUP BY urgencia";
             try (Statement stmt = conn.createStatement();
                  ResultSet rs = stmt.executeQuery(sqlUrgencia)) {
                 while (rs.next()) {
@@ -55,7 +55,7 @@ public class RelatorioFunction {
 
             // 3. Contagem por dia
             relatorio.append("\nContagem por dia:\n");
-            String sqlDia = "SELECT DATE(data_envio) as dia, COUNT(*) FROM avaliacao WHERE data_envio >= NOW() - INTERVAL '7 days' GROUP BY DATE(data_envio) ORDER BY dia";
+            String sqlDia = "SELECT DATE(dataenvio) as dia, COUNT(*) FROM avaliacao WHERE dataenvio >= NOW() - INTERVAL '7 days' GROUP BY DATE(dataenvio) ORDER BY dia";
             try (Statement stmt = conn.createStatement();
                  ResultSet rs = stmt.executeQuery(sqlDia)) {
                 while (rs.next()) {
