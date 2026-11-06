@@ -34,9 +34,14 @@ jobs:
           cd ${{ env.POM_XML_DIRECTORY }}/target/azure-functions/func-tech-challenge-processamento
           zip -r ../../../../deploy-processamento.zip .
 
-      - name: Deploy to Azure Functions
-        uses: Azure/functions-action@v1
-        with:
-          app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
-          package: '${{ github.workspace }}/deploy-processamento.zip'
-          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE_PROCESSAMENTO }}
+      - name: Deploy to Azure Functions via CLI
+        run: |
+          # Extrai o username e password do Publish Profile
+          USERNAME=$(echo '${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE_PROCESSAMENTO }}' | grep -oP '(?<=userName=")[^"]*')
+          PASSWORD=$(echo '${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE_PROCESSAMENTO }}' | grep -oP '(?<=userPWD=")[^"]*')
+          
+          # Faz o deploy usando o Kudu API (o mesmo que o Publish Profile usa)
+          curl -X POST -u "$USERNAME:$PASSWORD" \
+            -H "Content-Type: application/zip" \
+            --data-binary @deploy-processamento.zip \
+            "https://${{ env.AZURE_FUNCTIONAPP_NAME }}.scm.azurewebsites.net/api/zipdeploy"
