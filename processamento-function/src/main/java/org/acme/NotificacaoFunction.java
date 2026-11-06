@@ -6,6 +6,8 @@ import com.azure.communication.email.*;
 import com.azure.communication.email.models.*;
 import com.azure.core.util.polling.PollResponse;
 import com.azure.core.util.polling.SyncPoller;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class NotificacaoFunction {
 
@@ -20,12 +22,26 @@ public class NotificacaoFunction {
 
         context.getLogger().info("Mensagem recebida do Service Bus: " + message);
 
-        // A mensagem virá como JSON (ex: {"descricao":"...","nota":2,"dataEnvio":"..."})
-        // Aqui você pode usar Jackson ou Gson para desserializar, mas para simplificar,
-        // vamos apenas extrair os dados básicos.
-
         try {
-            // Configuração do ACS (via variáveis de ambiente)
+            // 1. Parse do JSON da mensagem
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode json = mapper.readTree(message);
+
+            String descricao = json.get("descricao").asText();
+            int nota = json.get("nota").asInt();
+            String dataEnvio = json.get("dataEnvio").toString(); // Ou formatar a data
+
+            // 2. Montar o corpo do e-mail formatado
+            String corpoEmail = String.format(
+                    "⚠️ ALERTA: Avaliação Urgente Recebida\n\n" +
+                            "Descrição: %s\n" +
+                            "Nota: %d\n" +
+                            "Data de Envio: %s\n\n" +
+                            "Por favor, tome as providências necessárias.",
+                    descricao, nota, dataEnvio
+            );
+
+            // 3. Configuração do ACS
             String connectionString = System.getenv("AZURE_COMMUNICATION_CONNECTION_STRING");
             String senderAddress = System.getenv("AZURE_COMMUNICATION_SENDER_ADDRESS");
             String adminEmail = System.getenv("ADMIN_EMAIL");
@@ -38,7 +54,7 @@ public class NotificacaoFunction {
                     .setSenderAddress(senderAddress)
                     .setToRecipients(adminEmail)
                     .setSubject("⚠️ Alerta: Avaliação Urgente Recebida")
-                    .setBodyPlainText("Uma nova avaliação urgente foi registrada.\n\nDados: " + message);
+                    .setBodyPlainText(corpoEmail);
 
             SyncPoller<EmailSendResult, EmailSendResult> poller = emailClient.beginSend(email, null);
             PollResponse<EmailSendResult> response = poller.waitForCompletion();
@@ -47,8 +63,7 @@ public class NotificacaoFunction {
 
         } catch (Exception e) {
             context.getLogger().severe("Erro ao enviar e-mail: " + e.getMessage());
-            throw new RuntimeException(e); // Faz o Service Bus reenfileirar a mensagem em caso de falha
+            throw new RuntimeException(e);
         }
     }
-
 }

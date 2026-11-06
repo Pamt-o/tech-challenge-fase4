@@ -79,6 +79,15 @@
             <version>1.1.2</version>
         </dependency>
         <dependency>
+            <groupId>com.azure</groupId>
+            <artifactId>azure-messaging-servicebus</artifactId>
+            <version>7.17.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+        <dependency>
             <groupId>io.quarkiverse.opentelemetry.exporter</groupId>
             <artifactId>quarkus-opentelemetry-exporter-azure</artifactId>
             <version>3.33.3.0</version>

@@ -6,7 +6,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.acme.model.Avaliacao;
-import org.acme.service.EmailService;
+import org.acme.service.ServiceBusPublisher;
 
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 public class AvaliacaoResource {
 
     @Inject
-    EmailService emailService;
+    ServiceBusPublisher serviceBusPublisher;
 
     @POST
     @Transactional
@@ -33,17 +33,13 @@ public class AvaliacaoResource {
 
         avaliacao.persist();
 
-        //Se for urgente, dispara o e-mail
-        if(avaliacao.urgencia != null && avaliacao.urgencia){
-            emailService.enviarEmailUrgente(
-                    avaliacao.descricao,
-                    avaliacao.urgencia.toString(),
-                    avaliacao.dataEnvio.toString()
-            );
+        // Se for urgente, publica a mensagem no Service Bus
+        if (avaliacao.urgencia != null && avaliacao.urgencia) {
+            serviceBusPublisher.publicarAvaliacaoUrgente(avaliacao); // <-- MUDOU AQUI
         }
-
         return Response.status(Response.Status.CREATED).entity(avaliacao).build();
     }
+
 
     @GET
     @Path("/relatorio")

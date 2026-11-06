@@ -35,7 +35,7 @@ public class Avaliacao extends PanacheEntityBase {
         }
         // Calcula a urgência se não estiver preenchida
         if (this.urgencia == null && this.nota != null) {
-            this.urgencia = this.nota < 3;
+            this.urgencia = this.nota < 6;
         }
     }
 }

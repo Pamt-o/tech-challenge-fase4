@@ -1,4 +1,3 @@
-
 services:
   # Serviço do ambiente de desenvolvimento Quarkus
   quarkus-dev:
@@ -7,18 +6,15 @@ services:
       dockerfile: ../Dockerfile.dev
     container_name: tech-challenge-quarkus-dev
     volumes:
-      # Monta o código-fonte do seu computador para dentro do container
       - ./avaliacao-function:/workspace
-      # Monta o cache do Maven para evitar baixar dependências repetidamente
       - ~/.m2:/root/.m2
     working_dir: /workspace
     ports:
-      # Porta para acessar a aplicação Quarkus em execução
       - "8080:8080"
-      # Porta para debug remoto (opcional, mas útil)
       - "5005:5005"
-    # O comando 'sleep infinity' vem do Dockerfile, mas podemos reforçar aqui se necessário
-    # command: sleep infinity
+    environment:
+      # Variável para o Service Bus (usada no perfil %dev)
+      - AZURE_SERVICEBUS_CONNECTION_STRING=Endpoint=sb://sb-tech-challenge-feedbacks.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=BsJyouRK0lyrGVDTHey5oN50EfXELNMWT+ASbM46tpQ=
     depends_on:
       - postgres
     networks:
@@ -33,10 +29,8 @@ services:
       POSTGRES_PASSWORD: quarkus
       POSTGRES_DB: feedback_db
     ports:
-      # Expõe a porta do banco para o seu computador (opcional, mas útil para ferramentas como DBeaver)
       - "5432:5432"
     volumes:
-      # Persiste os dados do banco mesmo que o container seja removido
       - postgres_data:/var/lib/postgresql/data
     networks:
       - tech-challenge-network
