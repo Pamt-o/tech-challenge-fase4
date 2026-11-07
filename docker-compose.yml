@@ -13,9 +13,7 @@ services:
       - "8080:8080"
       - "5005:5005"
     environment:
-      # Variável para o Service Bus (usada no perfil %dev)
-      - AZURE_SERVICEBUS_CONNECTION_STRING=Endpoint=sb://sb-tech-challenge-feedbacks.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=BsJyouRK0lyrGVDTHey5oN50EfXELNMWT+ASbM46tpQ=
-      - API_KEY=a9d6c8f4e2001ff059fcf3522d9536e23bb848f5bd31f9ad54bf3ab40ea90c40
+      - .env
     depends_on:
       - postgres
     networks:
