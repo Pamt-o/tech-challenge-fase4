@@ -1,5 +1,6 @@
 package org.acme.resource;
 
+import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
@@ -31,13 +32,19 @@ public class AvaliacaoResource {
                     .build();
         }
 
-        avaliacao.persist();
+        Uni.createFrom().item(avaliacao)
+                .onItem().invoke(a -> {
+                    a.persist();
+                    if (a.urgencia != null && a.urgencia) {
+                        serviceBusPublisher.publicarAvaliacaoUrgente(a);
+                    }
+                })
+                .subscribe().with(
+                        success -> System.out.println("Avaliação processada em background"),
+                        failure -> System.err.println("Erro no processamento: " + failure.getMessage())
+                );
 
-        // Se for urgente, publica a mensagem no Service Bus
-        if (avaliacao.urgencia != null && avaliacao.urgencia) {
-            serviceBusPublisher.publicarAvaliacaoUrgente(avaliacao); // <-- MUDOU AQUI
-        }
-        return Response.status(Response.Status.CREATED).entity(avaliacao).build();
+        return Response.status(Response.Status.ACCEPTED).entity(avaliacao).build();
     }
 
 
