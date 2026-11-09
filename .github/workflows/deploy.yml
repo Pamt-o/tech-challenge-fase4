@@ -35,3 +35,10 @@ jobs:
           app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
           package: '${{ github.workspace }}/avaliacao-function/target/azure-functions/func-tech-challenge-consumption'
           publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+
+      - name: Inspecionar pacote gerado
+        run: |
+          echo "Conteúdo do pacote Azure Functions:"
+          ls -la target/azure-functions/func-tech-challenge-consumption
+          echo "Configuração da função:"
+          cat target/azure-functions/func-tech-challenge-consumption/QuarkusHttp/function.json
