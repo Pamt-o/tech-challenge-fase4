@@ -35,11 +35,3 @@ jobs:
           app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
           package: '${{ github.workspace }}/avaliacao-function/target/azure-functions/func-tech-challenge-consumption'
           publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
-
-      - name: Inspecionar pacote Quarkus
-        run: |
-          echo "Conteúdo da pasta target:"
-          ls -la avaliacao-function/target/
-
-          echo "Conteúdo da pasta Azure Functions:"
-          find avaliacao-function/target/azure-functions -maxdepth 4 -type f | sort
