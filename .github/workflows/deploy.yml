@@ -28,11 +28,6 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build with Maven
-        run: |
-          cd ${{ env.POM_XML_DIRECTORY }}
-          mvn clean package -DskipTests
-
       - name: 'Login via OIDC'
         uses: azure/login@v3
         with:
@@ -40,9 +35,7 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: 'Deploy to Azure Functions'
-        uses: Azure/functions-action@v1
-        with:
-          app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
-          package: '${{ github.workspace }}/${{ env.POM_XML_DIRECTORY }}/target/azure-functions/tech-challenge-flex-quarkus'
-          sku: flexconsumption
+      - name: Build and Deploy with Quarkus
+        run: |
+          cd ${{ env.POM_XML_DIRECTORY }}
+          mvn clean package quarkus:deploy -Dquarkus.azure-functions.app-name=${{ env.AZURE_FUNCTIONAPP_NAME }}
