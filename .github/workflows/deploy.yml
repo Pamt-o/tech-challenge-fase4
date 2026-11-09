@@ -1,4 +1,4 @@
-name: Deploy Quarkus to Flex Consumption
+name: Deploy Quarkus para Flex Consumption
 
 on:
   push:
