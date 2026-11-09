@@ -36,9 +36,10 @@ jobs:
           package: '${{ github.workspace }}/avaliacao-function/target/azure-functions/func-tech-challenge-consumption'
           publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
 
-      - name: Inspecionar pacote gerado
+      - name: Inspecionar pacote Quarkus
         run: |
-          echo "Conteúdo do pacote Azure Functions:"
-          ls -la target/azure-functions/func-tech-challenge-consumption
-          echo "Configuração da função:"
-          cat target/azure-functions/func-tech-challenge-consumption/QuarkusHttp/function.json
+          echo "Conteúdo da pasta target:"
+          ls -la avaliacao-function/target/
+
+          echo "Conteúdo da pasta Azure Functions:"
+          find avaliacao-function/target/azure-functions -maxdepth 4 -type f | sort
