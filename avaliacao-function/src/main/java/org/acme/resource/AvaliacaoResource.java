@@ -23,6 +23,7 @@ public class AvaliacaoResource {
     @Inject
     ServiceBusPublisher serviceBusPublisher;
 
+    @Transactional
     @POST
     public Response criarAvaliacao(Avaliacao avaliacao) {
         // Validação rápida
