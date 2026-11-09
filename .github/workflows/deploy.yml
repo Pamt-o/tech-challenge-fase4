@@ -1,4 +1,4 @@
-name: Deploy Quarkus to Azure Functions
+name: Deploy Quarkus to Flex Consumption
 
 on:
   push:
@@ -7,9 +7,13 @@ on:
       - 'avaliacao-function/**'
 
 env:
-  AZURE_FUNCTIONAPP_NAME: 'func-tech-challenge-consumption'
+  AZURE_FUNCTIONAPP_NAME: 'tech-challenge-flex-quarkus'
   JAVA_VERSION: '17'
-  POM_XML_DIRECTORY: 'avaliacao-function' # <-- ADICIONADO
+  POM_XML_DIRECTORY: 'avaliacao-function'
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
   build-and-deploy:
@@ -26,12 +30,19 @@ jobs:
 
       - name: Build with Maven
         run: |
-          cd ${{ env.POM_XML_DIRECTORY }} # <-- ENTRA NA PASTA CORRETA
+          cd ${{ env.POM_XML_DIRECTORY }}
           mvn clean package -DskipTests
 
-      - name: Deploy to Azure Functions
+      - name: 'Login via OIDC'
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: 'Deploy to Azure Functions'
         uses: Azure/functions-action@v1
         with:
           app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
-          package: '${{ github.workspace }}/avaliacao-function/target/azure-functions/func-tech-challenge-consumption'
-          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+          package: '${{ github.workspace }}/${{ env.POM_XML_DIRECTORY }}/target/azure-functions/tech-challenge-flex-quarkus'
+          sku: flexconsumption
