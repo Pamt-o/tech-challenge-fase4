@@ -1,4 +1,4 @@
-package org.acme;
+package org.acme.function;
 
 import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.*;

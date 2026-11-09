@@ -85,4 +85,13 @@ public class AvaliacaoResource {
 
         return Response.ok(relatorio).build();
     }
+
+    @GET
+    @Path("/health")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response health() {
+        System.out.println("HEALTH CHECK EXECUTADO COM SUCESSO");
+
+        return Response.ok("AvaliacaoFunction ONLINE").build();
+    }
 }
