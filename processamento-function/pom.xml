@@ -14,30 +14,49 @@
         <java.version>17</java.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-        <azure.functions.maven.plugin.version>1.24.0</azure.functions.maven.plugin.version>
+        <azure.functions.maven.plugin.version>1.39.0</azure.functions.maven.plugin.version>
         <azure.functions.java.library.version>3.1.0</azure.functions.java.library.version>
         <functionAppName>func-tech-challenge-processamento</functionAppName>
     </properties>
 
     <dependencies>
-        <!-- Azure Functions Java Library -->
         <dependency>
             <groupId>com.microsoft.azure.functions</groupId>
             <artifactId>azure-functions-java-library</artifactId>
             <version>${azure.functions.java.library.version}</version>
         </dependency>
-        <!-- Azure Communication Services Email -->
+
+        <!-- Service Bus (trigger de fila) - OBRIGATÓRIO -->
+        <dependency>
+            <groupId>com.azure</groupId>
+            <artifactId>azure-messaging-servicebus</artifactId>
+            <version>7.17.0</version>
+        </dependency>
+
+        <!-- ACS Email -->
         <dependency>
             <groupId>com.azure</groupId>
             <artifactId>azure-communication-email</artifactId>
             <version>1.1.2</version>
         </dependency>
 
-        <!-- PostgreSQL Driver (para a RelatorioFunction) -->
+        <!-- PostgreSQL -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>42.7.4</version>
+        </dependency>
+
+        <!-- Jackson -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.17.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>2.17.0</version>
         </dependency>
 
         <!-- Testes -->
@@ -54,9 +73,10 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.17.0</version>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+            <version>4.0.0-M7</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 
@@ -79,22 +99,12 @@
                 <configuration>
                     <appName>${functionAppName}</appName>
                     <resourceGroup>rg-tech-challenge-feedbacks</resourceGroup>
-                    <appServicePlanName>ASP-rgtechchallengefeedbacks-b5ae</appServicePlanName>
                     <region>spaincentral</region>
+                    <pricingTier>Flex Consumption</pricingTier>
                     <runtime>
                         <os>linux</os>
                         <javaVersion>17</javaVersion>
                     </runtime>
-                    <appSettings>
-                        <property>
-                            <name>FUNCTIONS_EXTENSION_VERSION</name>
-                            <value>~4</value>
-                        </property>
-                        <property>
-                            <name>FUNCTIONS_WORKER_RUNTIME</name>
-                            <value>java</value>
-                        </property>
-                    </appSettings>
                 </configuration>
                 <executions>
                     <execution>

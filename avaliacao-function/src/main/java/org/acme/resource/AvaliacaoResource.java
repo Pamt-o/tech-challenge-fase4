@@ -1,6 +1,5 @@
 package org.acme.resource;
 
-import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
@@ -23,30 +22,22 @@ public class AvaliacaoResource {
     @Inject
     ServiceBusPublisher serviceBusPublisher;
 
-    @Transactional
     @POST
+    @Transactional
     public Response criarAvaliacao(Avaliacao avaliacao) {
-        // Validação rápida
         if (avaliacao.nota == null || avaliacao.nota < 0 || avaliacao.nota > 10) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("Nota deve ser entre 0 e 10").build();
+                    .entity("Nota deve ser entre 0 e 10")
+                    .build();
         }
 
-        // Dispara o processamento em background (salvar no banco + publicar no Service Bus)
-        Uni.createFrom().item(avaliacao)
-                .onItem().invoke(a -> {
-                    a.persist(); // Salva no PostgreSQL da Azure
-                    if (a.urgencia != null && a.urgencia) {
-                        serviceBusPublisher.publicarAvaliacaoUrgente(a);
-                    }
-                })
-                .subscribe().with(
-                        success -> System.out.println("Avaliação processada em background"),
-                        failure -> System.err.println("Erro no processamento: " + failure.getMessage())
-                );
+        avaliacao.persist();
 
-        // Retorna 202 Accepted IMEDIATAMENTE
-        return Response.status(Response.Status.ACCEPTED).entity(avaliacao).build();
+        // Se for urgente, publica a mensagem no Service Bus
+        if (avaliacao.urgencia != null && avaliacao.urgencia) {
+            serviceBusPublisher.publicarAvaliacaoUrgente(avaliacao); // <-- MUDOU AQUI
+        }
+        return Response.status(Response.Status.CREATED).entity(avaliacao).build();
     }
 
 
@@ -93,5 +84,4 @@ public class AvaliacaoResource {
 
         return Response.ok(relatorio).build();
     }
-
 }
