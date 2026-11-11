@@ -9,8 +9,12 @@ import com.azure.core.util.polling.SyncPoller;
 
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class RelatorioFunction {
+
+    // Formatador para deixar a data bonita (ex: 11/11/2026 11:52)
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     @FunctionName("RelatorioFunction")
     public void run(
@@ -18,7 +22,7 @@ public class RelatorioFunction {
             String timerInfo,
             final ExecutionContext context) {
 
-        context.getLogger().info("RelatorioFunction executada em: " + LocalDateTime.now());
+        context.getLogger().info("RelatorioFunction executada em: " + LocalDateTime.now().format(FORMATTER));
 
         String dbUrl = System.getenv("DB_JDBC_URL");
         String dbUser = System.getenv("DB_USERNAME");
@@ -26,7 +30,7 @@ public class RelatorioFunction {
 
         StringBuilder relatorio = new StringBuilder();
         relatorio.append("📊 RELATÓRIO SEMANAL DE AVALIAÇÕES\n");
-        relatorio.append("Data de geração: ").append(LocalDateTime.now()).append("\n\n");
+        relatorio.append("Data de geração: ").append(LocalDateTime.now().format(FORMATTER)).append("\n\n");
 
         try (Connection conn = DriverManager.getConnection(dbUrl, dbUser, dbPass)) {
             // 1. Média das notas
@@ -36,7 +40,6 @@ public class RelatorioFunction {
                 if (rs.next()) {
                     double media = rs.getDouble(1);
                     relatorio.append("Média das notas (últimos 7 dias): ").append(String.format("%.2f", media)).append("\n");
-                    context.getLogger().info("Média das notas (últimos 7 dias): " + media);
                 }
             }
 
@@ -49,7 +52,6 @@ public class RelatorioFunction {
                     boolean urgente = rs.getBoolean(1);
                     long count = rs.getLong(2);
                     relatorio.append(" - ").append(urgente ? "Urgente" : "Não urgente").append(": ").append(count).append(" avaliações\n");
-                    context.getLogger().info("Urgência " + urgente + ": " + count + " avaliações");
                 }
             }
 
@@ -61,8 +63,27 @@ public class RelatorioFunction {
                 while (rs.next()) {
                     String dia = rs.getString(1);
                     long count = rs.getLong(2);
-                    relatorio.append(" - ").append(dia).append(": ").append(count).append(" avaliações\n");
-                    context.getLogger().info("Dia " + dia + ": " + count + " avaliações");
+                    // Formata a data do banco (que vem como yyyy-MM-dd) para dd/MM/yyyy
+                    String diaFormatado = java.time.LocalDate.parse(dia).format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                    relatorio.append(" - ").append(diaFormatado).append(": ").append(count).append(" avaliações\n");
+                }
+            }
+
+            // 4. LISTAGEM DETALHADA DAS AVALIAÇÕES (Exigência do PDF)
+            relatorio.append("\n--- DETALHAMENTO DAS AVALIAÇÕES ---\n");
+            String sqlDetalhes = "SELECT descricao, urgencia, dataenvio FROM avaliacao WHERE dataenvio >= NOW() - INTERVAL '7 days' ORDER BY dataenvio DESC";
+            try (Statement stmt = conn.createStatement();
+                 ResultSet rs = stmt.executeQuery(sqlDetalhes)) {
+                while (rs.next()) {
+                    String descricao = rs.getString("descricao");
+                    boolean urgente = rs.getBoolean("urgencia");
+                    // Pega o timestamp do banco e formata
+                    Timestamp dataEnvio = rs.getTimestamp("dataenvio");
+                    String dataFormatada = dataEnvio.toLocalDateTime().format(FORMATTER);
+
+                    relatorio.append("Data: ").append(dataFormatada)
+                            .append(" | Urgência: ").append(urgente ? "SIM" : "NÃO")
+                            .append("\nDescrição: ").append(descricao).append("\n\n");
                 }
             }
 
@@ -84,7 +105,7 @@ public class RelatorioFunction {
             EmailMessage email = new EmailMessage()
                     .setSenderAddress(senderAddress)
                     .setToRecipients(adminEmail)
-                    .setSubject("📊 Relatório Semanal de Avaliações")
+                    .setSubject("📊 Relatório Semanal de Avaliações - " + LocalDateTime.now().format(FORMATTER))
                     .setBodyPlainText(relatorio.toString());
 
             SyncPoller<EmailSendResult, EmailSendResult> poller = emailClient.beginSend(email, null);
