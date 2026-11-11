@@ -1,47 +1,55 @@
 package org.acme.function;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.*;
 import com.azure.communication.email.*;
 import com.azure.communication.email.models.*;
-import com.azure.core.util.polling.PollResponse;
 import com.azure.core.util.polling.SyncPoller;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.azure.core.util.polling.PollResponse;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class NotificacaoFunction {
 
+    // 1. Criamos o formatador (ex: 11/11/2026 13:55)
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
     @FunctionName("NotificacaoFunction")
     public void run(
-            @ServiceBusQueueTrigger(
-                    name = "message",
-                    queueName = "fila-avaliacoes-urgentes",
-                    connection = "AzureServiceBusConnection"
-            ) String message,
+            @ServiceBusQueueTrigger(name = "message", queueName = "fila-notificacoes", connection = "AzureServiceBusConnection") final String message,
             final ExecutionContext context) {
 
-        context.getLogger().info("Mensagem recebida do Service Bus: " + message);
+        context.getLogger().info("Mensagem recebida: " + message);
 
         try {
-            // 1. Parse do JSON da mensagem
+            // 2. Lê o JSON
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode json = mapper.readTree(message);
+            mapper.registerModule(new JavaTimeModule());
+            JsonNode jsonNode = mapper.readTree(message);
 
-            String descricao = json.get("descricao").asText();
-            int nota = json.get("nota").asInt();
-            String dataEnvio = json.get("dataEnvio").toString(); // Ou formatar a data
+            // 3. Extrai os dados e formata a data
+            String descricao = jsonNode.get("descricao").asText();
+            int nota = jsonNode.get("nota").asInt();
 
-            // 2. Montar o corpo do e-mail formatado
+            // Pega a data como texto do JSON e converte para LocalDateTime
+            String dataString = jsonNode.get("dataEnvio").asText();
+            LocalDateTime dataEnvio = LocalDateTime.parse(dataString);
+            String dataFormatada = dataEnvio.format(FORMATTER);
+
+            // 4. Monta o e-mail bonitinho
             String corpoEmail = String.format(
                     "⚠️ ALERTA: Avaliação Urgente Recebida\n\n" +
                             "Descrição: %s\n" +
                             "Nota: %d\n" +
-                            "Data de Envio: %s\n\n" +
-                            "Por favor, tome as providências necessárias.",
-                    descricao, nota, dataEnvio
+                            "Data de Envio: %s",
+                    descricao, nota, dataFormatada
             );
 
-            // 3. Configuração do ACS
+            // 5. Envia o e-mail
             String connectionString = System.getenv("AZURE_COMMUNICATION_CONNECTION_STRING");
             String senderAddress = System.getenv("AZURE_COMMUNICATION_SENDER_ADDRESS");
             String adminEmail = System.getenv("ADMIN_EMAIL");
@@ -53,17 +61,17 @@ public class NotificacaoFunction {
             EmailMessage email = new EmailMessage()
                     .setSenderAddress(senderAddress)
                     .setToRecipients(adminEmail)
-                    .setSubject("⚠️ Alerta: Avaliação Urgente Recebida")
+                    .setSubject("⚠️ ALERTA: Avaliação Urgente Recebida")
                     .setBodyPlainText(corpoEmail);
 
             SyncPoller<EmailSendResult, EmailSendResult> poller = emailClient.beginSend(email, null);
-            PollResponse<EmailSendResult> response = poller.waitForCompletion();
+            poller.waitForCompletion();
 
-            context.getLogger().info("E-mail enviado! ID: " + response.getValue().getId());
+            context.getLogger().info("E-mail enviado com sucesso!");
 
         } catch (Exception e) {
-            context.getLogger().severe("Erro ao enviar e-mail: " + e.getMessage());
-            throw new RuntimeException(e);
+            context.getLogger().severe("Erro ao processar notificação: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }
